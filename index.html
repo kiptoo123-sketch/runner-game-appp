@@ -5,30 +5,11 @@
 <title>Runner Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {
-  margin:0; 
-  background:#87CEEB; 
-  text-align:center; 
-  font-family:Arial, sans-serif;
-}
-canvas {
-  display:block; 
-  margin:10px auto; 
-  background:#fff; 
-  border-radius:10px;
-}
-button {
-  padding:10px 20px; 
-  font-size:16px; 
-  border:none; 
-  border-radius:8px; 
-  background:#00c853; 
-  color:#fff;
-  margin:5px;
-}
+body { margin:0; background:#87CEEB; text-align:center; font-family:Arial,sans-serif; }
+canvas { display:block; margin:10px auto; background:#fff; border-radius:10px; }
+button { padding:10px 20px; font-size:16px; border:none; border-radius:8px; background:#00c853; color:#fff; margin:5px; }
 </style>
 </head>
-
 <body>
 
 <h2>🏃 Runner Game</h2>
@@ -36,60 +17,53 @@ button {
 <p id="score">Score: 0</p>
 <p id="coins">Coins: 0</p>
 <p>Tap or press SPACE to jump</p>
-
 <button id="restart" style="display:none;">Restart</button>
 
 <script>
-// ----- CANVAS -----
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// ----- GAME STATE -----
-let score = 0;
-let coins = 0;
-let gameOver = false;
-let soundUnlocked = false;
+let score=0, coins=0, gameOver=false, soundUnlocked=false;
 
-// ----- SOUNDS (inside the file, online sources) -----
+// --- Sounds ---
 const jumpSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_1b4b8f6e7a.mp3");
 const coinSound = new Audio("https://cdn.pixabay.com/audio/2022/03/10/audio_3b4a2d5e90.mp3");
 const overSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_7c4c8c4b26.mp3");
-
 [jumpSound, coinSound, overSound].forEach(s=>s.volume=0.6);
 
-// ----- UNLOCK SOUND -----
-function unlockSound(){
+// --- Unlock sounds on first tap ---
+function unlockSounds() {
   if(soundUnlocked) return;
-  [jumpSound, coinSound, overSound].forEach(s=>{s.play(); s.pause(); s.currentTime=0;});
+  [jumpSound, coinSound, overSound].forEach(s => { s.play(); s.pause(); s.currentTime=0; });
   soundUnlocked = true;
 }
-document.addEventListener("click", unlockSound, {once:true});
-document.addEventListener("touchstart", unlockSound, {once:true});
+document.addEventListener("click", unlockSounds, {once:true});
+document.addEventListener("touchstart", unlockSounds, {once:true});
 
-// ----- PLAYER -----
+// --- Player ---
 const player = {x:50, y:380, w:40, h:50, dy:0, gravity:0.8, jumpPower:-15, onGround:true};
 
-// ----- OBSTACLE -----
+// --- Obstacle ---
 let obstacle = {x:canvas.width, y:410, w:30, h:30, speed:3};
 
-// ----- COIN -----
+// --- Coin ---
 let coin = {x:canvas.width+200, y:330, r:10, taken:false};
 
-// ----- CONTROLS -----
+// --- Jump ---
 function jump() {
   if(player.onGround && !gameOver){
     player.dy = player.jumpPower;
-    player.onGround = false;
+    player.onGround=false;
     if(soundUnlocked) jumpSound.play();
   }
 }
 document.addEventListener("keydown", e=>{if(e.code==="Space") jump();});
 document.addEventListener("touchstart", jump);
 
-// ----- RESTART -----
+// --- Restart ---
 document.getElementById("restart").onclick = ()=>location.reload();
 
-// ----- GAME LOOP -----
+// --- Game loop ---
 function update() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -108,11 +82,7 @@ function update() {
 
   // Coin
   coin.x -= 3;
-  if(coin.x<-10){
-    coin.x=canvas.width+200;
-    coin.y=300+Math.random()*80;
-    coin.taken=false;
-  }
+  if(coin.x<-10){ coin.x=canvas.width+200; coin.y=300+Math.random()*80; coin.taken=false; }
 
   // Collision: obstacle
   if(player.x<obstacle.x+obstacle.w && player.x+player.w>obstacle.x &&
@@ -140,13 +110,12 @@ function update() {
   // Draw obstacle
   ctx.fillStyle="red"; ctx.fillRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h);
   // Draw coin
-  if(!coin.taken){ctx.fillStyle="gold"; ctx.beginPath(); ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI*2); ctx.fill();}
+  if(!coin.taken){ ctx.fillStyle="gold"; ctx.beginPath(); ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI*2); ctx.fill(); }
 
   requestAnimationFrame(update);
 }
 
 update();
 </script>
-
 </body>
 </html>
