@@ -1,0 +1,22 @@
+{
+  "name": "Runner Game",
+  "short_name": "Runner",
+  "description": "A fun runner game with coins, jumps, and sound",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#87CEEB",
+  "theme_color": "#87CEEB",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://i.imgur.com/lXo8V6I.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.imgur.com/lXo8V6I.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
