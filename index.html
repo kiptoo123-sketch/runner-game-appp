@@ -15,29 +15,33 @@ button { padding:10px 20px; font-size:16px; border:none; border-radius:8px; back
 <body>
 
 <h2>🏃 Runner Game</h2>
+
 <div id="startScreen">
   <p>Tap "Start" to play and enable sound</p>
   <button id="startBtn">Start Game</button>
 </div>
 
-<canvas id="game" width="360" height="500"></canvas>
+<canvas id="game" width="360" height="500" style="display:none;"></canvas>
 <p id="score">Score: 0</p>
 <p id="coins">Coins: 0</p>
 <p>Tap or press SPACE to jump</p>
-
 <button id="restart" style="display:none;">Restart</button>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let score=0, coins=0, gameOver=false, soundUnlocked=false;
+let score=0, coins=0, gameOver=false;
 
 // --- Sounds ---
-const jumpSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_1b4b8f6e7a.mp3");
-const coinSound = new Audio("https://cdn.pixabay.com/audio/2022/03/10/audio_3b4a2d5e90.mp3");
-const overSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_7c4c8c4b26.mp3");
-[jumpSound, coinSound, overSound].forEach(s=>s.volume=0.6);
+let jumpSound, coinSound, overSound;
+
+function initSounds(){
+  jumpSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_1b4b8f6e7a.mp3");
+  coinSound = new Audio("https://cdn.pixabay.com/audio/2022/03/10/audio_3b4a2d5e90.mp3");
+  overSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_7c4c8c4b26.mp3");
+  [jumpSound, coinSound, overSound].forEach(s=>s.volume=0.6);
+}
 
 // --- Player ---
 const player = {x:50, y:380, w:40, h:50, dy:0, gravity:0.8, jumpPower:-15, onGround:true};
@@ -53,7 +57,7 @@ function jump() {
   if(player.onGround && !gameOver){
     player.dy = player.jumpPower;
     player.onGround=false;
-    if(soundUnlocked) jumpSound.play();
+    if(jumpSound) jumpSound.play();
   }
 }
 document.addEventListener("keydown", e=>{if(e.code==="Space") jump();});
@@ -87,7 +91,7 @@ function update() {
   if(player.x<obstacle.x+obstacle.w && player.x+player.w>obstacle.x &&
      player.y<obstacle.y+obstacle.h && player.y+player.h>obstacle.y){
        gameOver=true;
-       if(soundUnlocked) overSound.play();
+       if(overSound) overSound.play();
        document.getElementById("restart").style.display="inline-block";
        return;
   }
@@ -100,7 +104,7 @@ function update() {
       coin.taken=true;
       coins++;
       document.getElementById("coins").innerText="Coins: "+coins;
-      if(soundUnlocked) coinSound.play();
+      if(coinSound) coinSound.play();
     }
   }
 
@@ -116,13 +120,13 @@ function update() {
 
 // --- START GAME BUTTON ---
 document.getElementById("startBtn").onclick = function() {
-  // Unlock sounds
-  [jumpSound, coinSound, overSound].forEach(s=>{s.play(); s.pause(); s.currentTime=0;});
-  soundUnlocked = true;
+  // Initialize sounds inside click event (guarantees playback works)
+  initSounds();
+
   document.getElementById("startScreen").style.display="none";
+  canvas.style.display="block";
   update();
 };
 </script>
-
 </body>
 </html>
