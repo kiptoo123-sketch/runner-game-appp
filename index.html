@@ -37,6 +37,7 @@ let score=0, coins=0, gameOver=false;
 // --- Sounds ---
 let jumpSound, coinSound, overSound;
 
+// Initialize sounds locally
 function initSounds(){
   jumpSound = new Audio("sounds/jump.mp3");
   coinSound = new Audio("sounds/coin.mp3");
@@ -121,7 +122,7 @@ function update() {
 
 // --- START GAME BUTTON ---
 document.getElementById("startBtn").onclick = function() {
-  initSounds(); // sounds now guaranteed to work
+  initSounds(); // sounds guaranteed to work now
   document.getElementById("startScreen").style.display="none";
   canvas.style.display="block";
   update();
