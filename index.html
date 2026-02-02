@@ -8,15 +8,23 @@
 body { margin:0; background:#87CEEB; text-align:center; font-family:Arial,sans-serif; }
 canvas { display:block; margin:10px auto; background:#fff; border-radius:10px; }
 button { padding:10px 20px; font-size:16px; border:none; border-radius:8px; background:#00c853; color:#fff; margin:5px; }
+#startScreen { position:absolute; top:0; left:0; width:100%; height:100%; background:#87CEEB; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+#startScreen button { font-size:20px; padding:15px 30px; }
 </style>
 </head>
 <body>
 
 <h2>🏃 Runner Game</h2>
+<div id="startScreen">
+  <p>Tap "Start" to play and enable sound</p>
+  <button id="startBtn">Start Game</button>
+</div>
+
 <canvas id="game" width="360" height="500"></canvas>
 <p id="score">Score: 0</p>
 <p id="coins">Coins: 0</p>
 <p>Tap or press SPACE to jump</p>
+
 <button id="restart" style="display:none;">Restart</button>
 
 <script>
@@ -30,15 +38,6 @@ const jumpSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_1b4b
 const coinSound = new Audio("https://cdn.pixabay.com/audio/2022/03/10/audio_3b4a2d5e90.mp3");
 const overSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_7c4c8c4b26.mp3");
 [jumpSound, coinSound, overSound].forEach(s=>s.volume=0.6);
-
-// --- Unlock sounds on first tap ---
-function unlockSounds() {
-  if(soundUnlocked) return;
-  [jumpSound, coinSound, overSound].forEach(s => { s.play(); s.pause(); s.currentTime=0; });
-  soundUnlocked = true;
-}
-document.addEventListener("click", unlockSounds, {once:true});
-document.addEventListener("touchstart", unlockSounds, {once:true});
 
 // --- Player ---
 const player = {x:50, y:380, w:40, h:50, dy:0, gravity:0.8, jumpPower:-15, onGround:true};
@@ -115,7 +114,15 @@ function update() {
   requestAnimationFrame(update);
 }
 
-update();
+// --- START GAME BUTTON ---
+document.getElementById("startBtn").onclick = function() {
+  // Unlock sounds
+  [jumpSound, coinSound, overSound].forEach(s=>{s.play(); s.pause(); s.currentTime=0;});
+  soundUnlocked = true;
+  document.getElementById("startScreen").style.display="none";
+  update();
+};
 </script>
+
 </body>
 </html>
