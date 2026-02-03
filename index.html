@@ -4,44 +4,35 @@
 <meta charset="UTF-8">
 <title>Runner Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body {
-  margin: 0;
-  background: #87CEEB;
-  text-align: center;
-  font-family: Arial, sans-serif;
+  margin:0;
+  background:#87CEEB;
+  text-align:center;
+  font-family:Arial, sans-serif;
 }
-
 canvas {
-  display: block;
-  margin: 10px auto;
-  background: #fff;
-  border-radius: 10px;
+  display:block;
+  margin:10px auto;
+  background:#fff;
+  border-radius:10px;
 }
-
 button {
-  padding: 12px 24px;
-  font-size: 16px;
-  border: none;
-  border-radius: 8px;
-  background: #00c853;
-  color: white;
-  margin: 5px;
+  padding:12px 25px;
+  font-size:18px;
+  border:none;
+  border-radius:8px;
+  background:#00c853;
+  color:#fff;
 }
-
 #startScreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #87CEEB;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  z-index: 10;
+  position:fixed;
+  inset:0;
+  background:#87CEEB;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
 }
 </style>
 </head>
@@ -51,15 +42,14 @@ button {
 <h2>🏃 Runner Game</h2>
 
 <div id="startScreen">
-  <p>Tap Start to enable sound</p>
-  <button id="startBtn">Start Game</button>
+  <p>Tap START to enable sound</p>
+  <button id="startBtn">START GAME</button>
 </div>
 
 <canvas id="game" width="360" height="500" style="display:none;"></canvas>
 
 <p id="score">Score: 0</p>
 <p id="coins">Coins: 0</p>
-<p>Tap screen or press SPACE to jump</p>
 
 <button id="restart" style="display:none;">Restart</button>
 
@@ -67,53 +57,31 @@ button {
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let score = 0;
-let coins = 0;
-let gameOver = false;
+let score = 0, coins = 0, gameOver = false;
 
-// 🔊 Sounds
-let jumpSound, coinSound, gameOverSound;
+// 🔊 SOUNDS (ONLINE — WORKS ON GITHUB PAGES)
+let jumpSound, coinSound, overSound;
 
 function initSounds() {
-  jumpSound = new Audio("sounds/jump.mp3");
-  coinSound = new Audio("sounds/coin.mp3");
-  gameOverSound = new Audio("sounds/gameover.mp3");
-
-  jumpSound.volume = 0.6;
-  coinSound.volume = 0.6;
-  gameOverSound.volume = 0.7;
+  jumpSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+  coinSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+  overSound = new Audio("https://actions.google.com/sounds/v1/cartoon/descending_whistle_2.ogg");
 }
 
-// 👤 Player
+// PLAYER
 const player = {
-  x: 50,
-  y: 380,
-  w: 40,
-  h: 50,
-  dy: 0,
-  gravity: 0.8,
-  jumpPower: -15,
-  onGround: true
+  x:50, y:380, w:40, h:50,
+  dy:0, gravity:0.8, jumpPower:-15,
+  onGround:true
 };
 
-// 🚧 Obstacle
-let obstacle = {
-  x: canvas.width,
-  y: 410,
-  w: 30,
-  h: 30,
-  speed: 3
-};
+// OBSTACLE
+let obstacle = {x:canvas.width, y:410, w:30, h:30, speed:3};
 
-// 🪙 Coin
-let coin = {
-  x: canvas.width + 200,
-  y: 330,
-  r: 10,
-  taken: false
-};
+// COIN
+let coin = {x:canvas.width+200, y:330, r:10, taken:false};
 
-// ⬆ Jump
+// JUMP
 function jump() {
   if (player.onGround && !gameOver) {
     player.dy = player.jumpPower;
@@ -128,14 +96,11 @@ document.addEventListener("keydown", e => {
 });
 document.addEventListener("touchstart", jump);
 
-// 🔁 Restart
-document.getElementById("restart").onclick = () => location.reload();
-
-// 🎮 Game Loop
+// GAME LOOP
 function update() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // Player physics
+  // Physics
   player.dy += player.gravity;
   player.y += player.dy;
   if (player.y >= 380) {
@@ -144,23 +109,23 @@ function update() {
     player.onGround = true;
   }
 
-  // Obstacle movement
+  // Obstacle
   obstacle.x -= obstacle.speed;
   if (obstacle.x < -obstacle.w) {
-    obstacle.x = canvas.width + Math.random() * 200;
+    obstacle.x = canvas.width + Math.random()*200;
     score++;
     document.getElementById("score").innerText = "Score: " + score;
   }
 
-  // Coin movement
+  // Coin
   coin.x -= 3;
   if (coin.x < -10) {
     coin.x = canvas.width + 200;
-    coin.y = 300 + Math.random() * 80;
+    coin.y = 300 + Math.random()*80;
     coin.taken = false;
   }
 
-  // Obstacle collision
+  // Collision obstacle
   if (
     player.x < obstacle.x + obstacle.w &&
     player.x + player.w > obstacle.x &&
@@ -168,26 +133,25 @@ function update() {
     player.y + player.h > obstacle.y
   ) {
     gameOver = true;
-    gameOverSound.play();
+    overSound.play();
     document.getElementById("restart").style.display = "inline-block";
     return;
   }
 
-  // Coin collision
+  // Collision coin
   if (!coin.taken) {
-    let dx = player.x + player.w / 2 - coin.x;
-    let dy = player.y + player.h / 2 - coin.y;
-    if (Math.sqrt(dx * dx + dy * dy) < 25) {
+    let dx = player.x + player.w/2 - coin.x;
+    let dy = player.y + player.h/2 - coin.y;
+    if (Math.sqrt(dx*dx + dy*dy) < 25) {
       coin.taken = true;
       coins++;
       document.getElementById("coins").innerText = "Coins: " + coins;
-      coinSound.currentTime = 0;
       coinSound.play();
     }
   }
 
   // Draw
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "#000";
   ctx.fillRect(player.x, player.y, player.w, player.h);
 
   ctx.fillStyle = "red";
@@ -196,20 +160,22 @@ function update() {
   if (!coin.taken) {
     ctx.fillStyle = "gold";
     ctx.beginPath();
-    ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI * 2);
+    ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI*2);
     ctx.fill();
   }
 
   requestAnimationFrame(update);
 }
 
-// ▶ Start Button
+// START
 document.getElementById("startBtn").onclick = () => {
   initSounds();
   document.getElementById("startScreen").style.display = "none";
   canvas.style.display = "block";
   update();
 };
+
+document.getElementById("restart").onclick = () => location.reload();
 </script>
 
 </body>
