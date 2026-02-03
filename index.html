@@ -4,27 +4,62 @@
 <meta charset="UTF-8">
 <title>Runner Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body { margin:0; background:#87CEEB; text-align:center; font-family:Arial,sans-serif; }
-canvas { display:block; margin:10px auto; background:#fff; border-radius:10px; }
-button { padding:10px 20px; font-size:16px; border:none; border-radius:8px; background:#00c853; color:#fff; margin:5px; }
-#startScreen { position:absolute; top:0; left:0; width:100%; height:100%; background:#87CEEB; display:flex; align-items:center; justify-content:center; flex-direction:column; }
-#startScreen button { font-size:20px; padding:15px 30px; }
+body {
+  margin: 0;
+  background: #87CEEB;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+canvas {
+  display: block;
+  margin: 10px auto;
+  background: #fff;
+  border-radius: 10px;
+}
+
+button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #00c853;
+  color: white;
+  margin: 5px;
+}
+
+#startScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #87CEEB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 10;
+}
 </style>
 </head>
+
 <body>
 
 <h2>🏃 Runner Game</h2>
 
 <div id="startScreen">
-  <p>Tap "Start" to play and enable sound</p>
+  <p>Tap Start to enable sound</p>
   <button id="startBtn">Start Game</button>
 </div>
 
 <canvas id="game" width="360" height="500" style="display:none;"></canvas>
+
 <p id="score">Score: 0</p>
 <p id="coins">Coins: 0</p>
-<p>Tap or press SPACE to jump</p>
+<p>Tap screen or press SPACE to jump</p>
 
 <button id="restart" style="display:none;">Restart</button>
 
@@ -32,101 +67,150 @@ button { padding:10px 20px; font-size:16px; border:none; border-radius:8px; back
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let score=0, coins=0, gameOver=false;
+let score = 0;
+let coins = 0;
+let gameOver = false;
 
-// --- Sounds ---
-let jumpSound, coinSound, overSound;
+// 🔊 Sounds
+let jumpSound, coinSound, gameOverSound;
 
-// Initialize sounds locally
-function initSounds(){
+function initSounds() {
   jumpSound = new Audio("sounds/jump.mp3");
   coinSound = new Audio("sounds/coin.mp3");
-  overSound = new Audio("sounds/gameover.mp3");
-  [jumpSound, coinSound, overSound].forEach(s=>s.volume=0.6);
+  gameOverSound = new Audio("sounds/gameover.mp3");
+
+  jumpSound.volume = 0.6;
+  coinSound.volume = 0.6;
+  gameOverSound.volume = 0.7;
 }
 
-// --- Player ---
-const player = {x:50, y:380, w:40, h:50, dy:0, gravity:0.8, jumpPower:-15, onGround:true};
+// 👤 Player
+const player = {
+  x: 50,
+  y: 380,
+  w: 40,
+  h: 50,
+  dy: 0,
+  gravity: 0.8,
+  jumpPower: -15,
+  onGround: true
+};
 
-// --- Obstacle ---
-let obstacle = {x:canvas.width, y:410, w:30, h:30, speed:3};
+// 🚧 Obstacle
+let obstacle = {
+  x: canvas.width,
+  y: 410,
+  w: 30,
+  h: 30,
+  speed: 3
+};
 
-// --- Coin ---
-let coin = {x:canvas.width+200, y:330, r:10, taken:false};
+// 🪙 Coin
+let coin = {
+  x: canvas.width + 200,
+  y: 330,
+  r: 10,
+  taken: false
+};
 
-// --- Jump ---
+// ⬆ Jump
 function jump() {
-  if(player.onGround && !gameOver){
+  if (player.onGround && !gameOver) {
     player.dy = player.jumpPower;
-    player.onGround=false;
-    if(jumpSound) jumpSound.play();
+    player.onGround = false;
+    jumpSound.currentTime = 0;
+    jumpSound.play();
   }
 }
-document.addEventListener("keydown", e=>{if(e.code==="Space") jump();});
+
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") jump();
+});
 document.addEventListener("touchstart", jump);
 
-// --- Restart ---
-document.getElementById("restart").onclick = ()=>location.reload();
+// 🔁 Restart
+document.getElementById("restart").onclick = () => location.reload();
 
-// --- Game loop ---
+// 🎮 Game Loop
 function update() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Player physics
   player.dy += player.gravity;
   player.y += player.dy;
-  if(player.y>=380){player.y=380; player.dy=0; player.onGround=true;}
+  if (player.y >= 380) {
+    player.y = 380;
+    player.dy = 0;
+    player.onGround = true;
+  }
 
-  // Obstacle
+  // Obstacle movement
   obstacle.x -= obstacle.speed;
-  if(obstacle.x<-obstacle.w){
-    obstacle.x = canvas.width + Math.random()*200;
+  if (obstacle.x < -obstacle.w) {
+    obstacle.x = canvas.width + Math.random() * 200;
     score++;
-    document.getElementById("score").innerText="Score: "+score;
+    document.getElementById("score").innerText = "Score: " + score;
   }
 
-  // Coin
+  // Coin movement
   coin.x -= 3;
-  if(coin.x<-10){ coin.x=canvas.width+200; coin.y=300+Math.random()*80; coin.taken=false; }
-
-  // Collision: obstacle
-  if(player.x<obstacle.x+obstacle.w && player.x+player.w>obstacle.x &&
-     player.y<obstacle.y+obstacle.h && player.y+player.h>obstacle.y){
-       gameOver=true;
-       if(overSound) overSound.play();
-       document.getElementById("restart").style.display="inline-block";
-       return;
+  if (coin.x < -10) {
+    coin.x = canvas.width + 200;
+    coin.y = 300 + Math.random() * 80;
+    coin.taken = false;
   }
 
-  // Collision: coin
-  if(!coin.taken){
-    let dx=player.x+player.w/2-coin.x;
-    let dy=player.y+player.h/2-coin.y;
-    if(Math.sqrt(dx*dx+dy*dy)<25){
-      coin.taken=true;
+  // Obstacle collision
+  if (
+    player.x < obstacle.x + obstacle.w &&
+    player.x + player.w > obstacle.x &&
+    player.y < obstacle.y + obstacle.h &&
+    player.y + player.h > obstacle.y
+  ) {
+    gameOver = true;
+    gameOverSound.play();
+    document.getElementById("restart").style.display = "inline-block";
+    return;
+  }
+
+  // Coin collision
+  if (!coin.taken) {
+    let dx = player.x + player.w / 2 - coin.x;
+    let dy = player.y + player.h / 2 - coin.y;
+    if (Math.sqrt(dx * dx + dy * dy) < 25) {
+      coin.taken = true;
       coins++;
-      document.getElementById("coins").innerText="Coins: "+coins;
-      if(coinSound) coinSound.play();
+      document.getElementById("coins").innerText = "Coins: " + coins;
+      coinSound.currentTime = 0;
+      coinSound.play();
     }
   }
 
-  // Draw player
-  ctx.fillStyle="#000"; ctx.fillRect(player.x, player.y, player.w, player.h);
-  // Draw obstacle
-  ctx.fillStyle="red"; ctx.fillRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h);
-  // Draw coin
-  if(!coin.taken){ ctx.fillStyle="gold"; ctx.beginPath(); ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI*2); ctx.fill(); }
+  // Draw
+  ctx.fillStyle = "black";
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+
+  ctx.fillStyle = "red";
+  ctx.fillRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h);
+
+  if (!coin.taken) {
+    ctx.fillStyle = "gold";
+    ctx.beginPath();
+    ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   requestAnimationFrame(update);
 }
 
-// --- START GAME BUTTON ---
-document.getElementById("startBtn").onclick = function() {
-  initSounds(); // sounds now guaranteed to work
-  document.getElementById("startScreen").style.display="none";
-  canvas.style.display="block";
+// ▶ Start Button
+document.getElementById("startBtn").onclick = () => {
+  initSounds();
+  document.getElementById("startScreen").style.display = "none";
+  canvas.style.display = "block";
   update();
 };
 </script>
+
 </body>
 </html>
